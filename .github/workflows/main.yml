@@ -36,7 +36,7 @@ jobs:
     - name: Get Lambda Role ARN
       id: get-role
       run: |
-        ROLE_ARN=$(aws iam get-role --role-name lambda-exec --query 'Role.Arn' --output text)
+        ROLE_ARN=$(aws iam get-role --role-name Lambda --query 'Role.Arn' --output text)
         echo "role_arn=$ROLE_ARN" >> $GITHUB_OUTPUT
 
     - name: Deploy to AWS Lambda
