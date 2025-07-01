@@ -31,34 +31,27 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        echo "image_uri=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+        echo "image_uri=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
 
-    - name: Setup Lambda Execution Role
-      id: setup-role
+    - name: Get Existing Lambda Execution Role ARN
       run: |
-        # Create role if doesn't exist
-        if ! aws iam get-role --role-name lambda-exec > /dev/null 2>&1; then
-          aws iam create-role --role-name lambda-exec --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}'
-          aws iam attach-role-policy --role-name lambda-exec --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        fi
         ROLE_ARN=$(aws iam get-role --role-name lambda-exec --query 'Role.Arn' --output text)
-        echo "role_arn=$ROLE_ARN" >> $GITHUB_OUTPUT
+        echo "role_arn=$ROLE_ARN" >> $GITHUB_ENV
 
     - name: Create or Update Lambda Function
       run: |
-        # Check if function exists
         if aws lambda get-function --function-name todo-app > /dev/null 2>&1; then
           echo "Updating existing function"
           aws lambda update-function-code \
             --function-name todo-app \
-            --image-uri ${{ steps.build-image.outputs.image_uri }}
+            --image-uri ${{ env.image_uri }}
         else
           echo "Creating new function"
           aws lambda create-function \
             --function-name todo-app \
-            --role ${{ steps.setup-role.outputs.role_arn }} \
+            --role ${{ env.role_arn }} \
             --package-type Image \
-            --code ImageUri=${{ steps.build-image.outputs.image_uri }} \
+            --code ImageUri=${{ env.image_uri }} \
             --timeout 30 \
             --memory-size 128
         fi
