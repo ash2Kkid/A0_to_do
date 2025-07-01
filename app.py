@@ -35,6 +35,10 @@ def delete_todo(index):
         return jsonify(deleted)
     return jsonify({"error": "Todo not found"}), 404
 
+import awsgi
+def handler(event, context):
+    return awsgi.response(app, event, context)
+
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({"error": "Endpoint not found"}), 404
