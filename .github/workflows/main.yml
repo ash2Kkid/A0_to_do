@@ -35,7 +35,7 @@ jobs:
 
     - name: Get Existing Lambda Execution Role ARN
       run: |
-        ROLE_ARN=$(aws iam get-role --role-name lambda-exec --query 'Role.Arn' --output text)
+        ROLE_ARN=$(aws iam get-role --role-name Lambda --query 'Role.Arn' --output text)
         echo "role_arn=$ROLE_ARN" >> $GITHUB_ENV
 
     - name: Create or Update Lambda Function
